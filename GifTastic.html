@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GifTastic</title>
+<!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<!-- DOM -->
+<body>
+<!-- div to store animal buttons -->
+  <div id='animal-buttons' style="margin-bottom: 20px"></div>
+  <row>
+<!-- div to store animal GIFs -->
+    <div id='animals' class='col-md-9 push-left'>
+    </div>
+<!-- form for user to create new animal button to search GIF -->
+    <form id='animal-form' class='col-md-3 form-inline'>
+      <div class="form-group">
+        <label for='animal-input'>Add an animal</label>
+        <input type="text" id="animal-input" class="form-control" placeholder="Any Animal">
+      </div>
+      </div>
+      <button type="submit" id="addAnimal" class="btn btn-default btn-xs" style="margin-top: 10px" >Submit</button>
+    </form>
+
+<!-- jQuery link -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<!-- JavaScript -->
+  <script type="text/javascript">
+// Initial button array
+  var buttonArray = ['dog', 'cat', 'rabbit', 'hampster', 'skunk', 'goldfish', 'bird', 'ferret', 'turtle', 'sugar glider', 'chincilla', 'hedgehog', 'hermit crab', 'gerbil', 'pygmy goat', 'chicken', 'capybara', 'teacup pig', 'serval', 'salamander', 'frog']
+// function to loop through button array and render buttons
+  function renderButtons() {
+      $('#animal-buttons').empty()
+      for (var i = 0; i < buttonArray.length; i++) {
+        $('#animal-buttons').append("<button class='animalButton btn btn-primary' type='button' style='margin:5px'>"+ buttonArray[i] + "</button>")
+      }
+  }
+// function to push user input to button array
+  function pushToArray(){
+    event.preventDefault()
+    var userInput = $('#animal-input').val().trim()
+    buttonArray.push(userInput)
+    renderButtons()
+  }
+// function to display still GIFs
+  function displayGifs(){
+    var animal = $(this).text()
+    var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + animal + "&api_key=dc6zaTOxFJmzC&limit=10"
+    // start with an empty div
+    $('#animals').empty()
+    // send AJAX request
+    $.ajax({
+        url: queryURL,
+        method: "GET"
+    })
+      .done(function(response) {
+        var results = response.data
+    // loop through length of the results do display rating and Gif of each result
+        for (var i = 0; i < results.length; i++) {
+          var rating = results[i].rating
+          var stillGif = results[i].images.fixed_height_still.url
+          var animatedGif = results[i].images.fixed_height.url
+          var animalImage = $("<img class='gif' data-state='still'>")
+            animalImage.attr("data-animate", animatedGif)
+            animalImage.attr("data-still", stillGif)
+            animalImage.attr("src", stillGif)
+          var p = $("<p>").text("Rating: " + rating)
+          var gifDiv = $("<div class='pull-left gifDiv' style='margin:10px'>")
+          gifDiv.prepend(p)
+          gifDiv.append(animalImage)
+          $("#animals").prepend(gifDiv)
+        }   // }for loop
+      })
+    }       // }function displayGIFs
+// function to animate or freeze GIFs
+function animateFreeze() {
+      var state = $(this).attr("data-state")
+      // if still, animate
+      if (state === "still"){        
+         $(this).attr("data-state", "animate")
+         $(this).attr("src", $(this).attr('data-animate'))
+      // else if animated, make still
+      } else if (state==="animate"){
+        $(this).attr("data-state", "still")
+        $(this).attr("src", $(this).attr('data-still'))
+      }
+    }
+
+//GifTastic App
+  $( document ).ready(function() {
+    // run renderButtons
+    renderButtons()
+    // when form submit button clicked, run pushToArray
+    $("#addAnimal").on("click", pushToArray)
+    // when animal button clicked, display Gifs
+    $(document).on('click', '.animalButton', displayGifs)
+    // when gif clicked, run animateMyGif
+    $(document).on("click", '.gif', animateFreeze)
+  }) // }) preparing page for jQuery
+
+  </script>   
+</body>
+</html>
